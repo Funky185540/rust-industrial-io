@@ -88,6 +88,55 @@ pub(crate) fn sys_result<T>(ret: i32, result: T) -> Result<T> {
     }
 }
 
+
+/// Trait to implement IIO attributes.
+pub trait IIOAttribute where Self: fmt::Display + FromStr + Sized {
+
+    /// Converts the attribute name and value to CString's that can be sent to
+    /// the C library.
+    ///
+    /// `attr` The name of the attribute
+    /// `val` The value to write. This should typically be an int, float, bool,
+    ///     or string type.
+    fn attr_to_string(&self) -> Result<String> {
+        Ok(format!("{}", self))
+    }
+
+    /// Converts a String to an atribute value.
+    /// The type is typically an int, float, bool, or string.
+    ///
+    /// `attr` T
+    fn string_to_attr(attr_string: &str) -> Result<Self> {
+        let val = Self::from_str(attr_string).map_err(
+            |_| Error::StringConversionError)?;
+        Ok(val)
+    }
+}
+
+/// IIO attribute conversion for the bool type.
+/// 
+/// The bool type needs a special implementation of the attribute conversion
+/// trait because it's default string counterparts are "true" and "false" for
+/// true and false values respectively. However, sysfs expects these to be "1"
+/// or "0".
+impl IIOAttribute for bool {
+    fn attr_to_string(&self) -> Result<String> {
+        Ok(
+            (if *self == true { "1" } else { "0" }).into()
+        )
+    }
+
+    fn string_to_attr(attr_string: &str) -> Result<bool> {
+        Ok(
+            (if attr_string.trim() == "0" { false } else { true }).into()
+        )
+    }
+}
+
+// Default trait implementations for the default types in the IIO lib
+impl IIOAttribute for i64 {}
+impl IIOAttribute for f64 {}
+
 /// Converts the attribute name and value to CString's that can be sent to
 /// the C library.
 ///
