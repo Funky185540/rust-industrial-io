@@ -230,9 +230,9 @@ impl Channel {
     /// Reads a channel-specific attribute
     ///
     /// `attr` The name of the attribute
-    pub fn attr_read<T: FromStr + Any>(&self, attr: &str) -> Result<T> {
+    pub fn attr_read<T: IIOAttribute>(&self, attr: &str) -> Result<T> {
         let sval = self.attr_read_str(attr)?;
-        string_to_attr(sval)
+        IIOAttribute::string_to_attr(&sval)
     }
 
     /// Reads a channel-specific attribute as a string
@@ -320,8 +320,8 @@ impl Channel {
     ///
     /// `attr` The name of the attribute
     /// `val` The value to write
-    pub fn attr_write<T: Display + Any>(&self, attr: &str, val: T) -> Result<()> {
-        let sval = attr_to_string(val)?;
+    pub fn attr_write<T: IIOAttribute>(&self, attr: &str, val: T) -> Result<()> {
+        let sval = IIOAttribute::attr_to_string(&val)?;
         self.attr_write_str(attr, &sval)
     }
 
